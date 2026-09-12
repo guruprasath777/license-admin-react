@@ -56,14 +56,35 @@ that holds the secret and the browser only talks to your endpoint.
 
 ## Project structure
 
-- `src/firebase.js` — Firebase app/auth/db init, reading config from
-  `import.meta.env`.
-- `src/emailjs.js` — EmailJS wrapper, same env-var pattern.
-- `src/utils.js` — pure helper functions (code generation, formatting,
-  error messages) ported 1:1 from the original script.
-- `src/App.jsx` — all UI: sign-in screen, issue codes, send to client,
-  codes/licenses/devices tables.
-- `src/App.css` — styling, ported from the original `<style>` block.
+`index.html` at the repo root is the Vite entry; it loads `src/main.jsx`,
+which mounts `src/App.jsx`.
+
+```
+src/
+  main.jsx                  entry — mounts App, pulls in the stylesheet
+  App.jsx                   auth shell: waits on Firebase, then SignIn or Admin
+  components/
+    SignIn.jsx              email/password sign-in screen
+    IssueCodes.jsx          generate N codes of a given duration
+    SendToClient.jsx        email codes out via EmailJS (prefilled after Generate)
+    CodesSection.jsx        issued-codes table, unused-only filter, revoke
+    LicensesSection.jsx     active licenses, revoke
+    DevicesSection.jsx      registered devices, text filter
+    DeviceRow.jsx           one device row + its expandable Details panel
+  lib/
+    firebase.js             app/auth/db init from import.meta.env, collection names
+    emailjs.js              EmailJS wrapper
+    utils.js                pure helpers — code generation, formatting, error text
+  styles/
+    App.css                 styling, ported from the original <style> block
+```
+
+Components are one-per-file and self-contained: each imports the Firestore
+calls and helpers it needs directly from `lib/`, so no state is threaded
+through `App.jsx` beyond the two things that genuinely cross sections — a
+reload token that makes the codes table refresh after Generate, and the
+prefill handed to Send to client.
+
 
 ## Deploying to GitHub Pages
 
