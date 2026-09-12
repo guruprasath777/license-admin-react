@@ -89,8 +89,8 @@ prefill handed to Send to client.
 ## Deploying to GitHub Pages
 
 Pushing to `main` builds and publishes automatically via
-`.github/workflows/deploy.yml`. Three things have to be set up once, on the
-GitHub side, before the first push will produce a working site.
+`.github/workflows/deploy.yml`. Two things need setting up on the GitHub side;
+step 2 is only here to explain why there is no third.
 
 **1. Set the Pages source to GitHub Actions.**
 Settings → Pages → Build and deployment → Source → **GitHub Actions**.
@@ -98,25 +98,20 @@ If this is left on "Deploy from a branch", that branch-based publisher races
 the Actions deploy and the site serves a blank page from whatever it finds at
 the branch root.
 
-**2. Add the six build values as repository secrets.**
-Settings → Secrets and variables → Actions → New repository secret, one each:
+**2. Nothing to configure — the build values are committed.**
+`vite build` reads `.env.production`, which is in the repo, so the workflow
+needs no secrets and no repository settings.
 
-```
-VITE_FIREBASE_API_KEY
-VITE_FIREBASE_AUTH_DOMAIN
-VITE_FIREBASE_PROJECT_ID
-VITE_EMAILJS_PUBLIC_KEY
-VITE_EMAILJS_SERVICE_ID
-VITE_EMAILJS_TEMPLATE_ID
-```
+That is a deliberate choice, not an oversight. Vite bakes every `VITE_` value
+into the public JS bundle, so all six are readable by anyone who opens the
+deployed site no matter where they are stored; putting them in a GitHub
+secret would hide them from that file and from nowhere else. See the comment
+at the top of `.env.production`.
 
-Same values as your local `.env` (which stays git-ignored). The workflow
-checks all six are present and fails the run with a named list if any is
-missing — Vite would otherwise bake in `undefined` and publish a build that
-loads fine and then breaks at sign-in.
+`.env` stays git-ignored for local development. If you ever want a different
+Firebase project for the deployed site than the one you develop against, edit
+`.env.production` — it wins over `.env` during a production build.
 
-These are secrets only in the "not committed to the repo" sense. As the
-section above explains, they ship inside the public JS bundle either way.
 
 **3. Allowlist the deployed domain in both services.**
 The site will be served from `https://<user>.github.io/<repo>/`. Until that
